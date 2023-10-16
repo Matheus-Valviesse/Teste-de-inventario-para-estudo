@@ -13,14 +13,15 @@ const createItem = (name, type, qt) => {
 	};
 };
 
-function findStack(name){
+function findStack(name) {
 	const itensStacks = {
 		'hp potion': 9,
-		'mana potion': 9
+		'mana potion': 9,
+		'magic rock': 60
 	};
 
-  return itensStacks[name]
-};
+	return itensStacks[name];
+}
 
 class inventory {
 	constructor() {
@@ -29,41 +30,68 @@ class inventory {
 
 	addInventory(item) {
 		if (
-			(item.type != 'weapon' &&
-				item.type != 'equipament' &&
-				item.type != 'rune') === true
+			item.type === 'weapon' ||
+			item.type === 'equipment' ||
+			item.type === 'rune'
 		) {
-			const itemInInventory = this.slots.findIndex(
-				(slot) => slot.name == item.name && slot.qt < slot.stack
-			);
-			console.log(itemInInventory);
+			// Itens únicos (weapon, equipment, rune) - procurar um slot vazio
+			const emptySlotIndex = this.slots.findIndex((slot) => slot === '');
+			if (emptySlotIndex !== -1) {
+				this.slots[emptySlotIndex] = item;
+				return `Item adicionado: ${item.name}`;
+			} else {
+				return 'Inventario Cheio';
+			}
+		} else {
+			// Itens empilháveis (outros tipos) - procurar item similar para empilhar
+			let remainingQty = item.qt;
 
-			if (itemInInventory != -1) {
-				const maxQt = (this.slots[itemInInventory].qt += item.qt);
+			while (remainingQty > 0) {
+				const itemIndex = this.slots.findIndex((slot) => {
+					if (slot && slot.type === item.type) {
+						return slot.name === item.name && slot.qt < slot.stack;
+					}
+					return false;
+				});
 
-				if (maxQt > this.slots[itemInInventory].stack) {
-					const resto = maxQt - this.slots[itemInInventory].stack;
-					this.slots[itemInInventory].qt = this.slots[itemInInventory].stack;
+				if (itemIndex !== -1) {
+					const availableSpace =
+						this.slots[itemIndex].stack - this.slots[itemIndex].qt;
 
-					if (resto > 0)
-						this.addItem(createItem(item.name, item.type, resto));
-
-					return '';
+					if (remainingQty <= availableSpace) {
+						this.slots[itemIndex].qt += remainingQty;
+						return `Item adicionado: ${item.name}`;
+					} else {
+						this.slots[itemIndex].qt = this.slots[itemIndex].stack;
+						remainingQty -= availableSpace;
+					}
 				} else {
-					this.slots[itemInInventory].qt = maxQt;
-					return '';
+					// Verificar se o inventário está cheio
+					const isFull = this.slots.every((slot) => slot !== '');
+					if (isFull) {
+						return 'Inventario Cheio';
+					}
+
+					// Se não estiver cheio, encontre um slot vazio e adicione o item
+					const emptySlotIndex = this.slots.findIndex((slot) => slot === '');
+					if (emptySlotIndex !== -1) {
+						const newItem = {
+							...item,
+							qt: Math.min(remainingQty, item.stack)
+						};
+						this.slots[emptySlotIndex] = newItem;
+						return `Item adicionado: ${newItem.name}`;
+					}
 				}
 			}
 		}
-
-		return this.addItem(item);
 	}
 
 	addItem(item) {
-		const slotVoid = this.slots.findIndex((slot) => slot === '');
-
-		if (slotVoid != -1) {
-			this.slots[slotVoid] = item;
+		const emptySlotIndex = this.slots.findIndex((slot) => slot === '');
+		console.log(emptySlotIndex);
+		if (emptySlotIndex !== -1) {
+			this.slots[emptySlotIndex] = item;
 		} else {
 			return 'Inventario Cheio';
 		}
@@ -72,19 +100,22 @@ class inventory {
 
 const newInventory = new inventory();
 
-newInventory.addInventory(createItem('machado', 'weapon'));
+console.log(newInventory.addInventory(createItem('machado', 'weapon')));
 
-newInventory.addInventory(createItem('hp potion', 'consumible', 2, 9));
-newInventory.addInventory(createItem('hp potion', 'consumible', 2));
+console.log(
+	newInventory.addInventory(createItem('hp potion', 'consumible', 2))
+);
+console.log(
+	newInventory.addInventory(createItem('hp potion', 'consumible', 2))
+);
+console.log(
+	newInventory.addInventory(createItem('hp potion', 'consumible', 8))
+);
+console.log(
+	newInventory.addInventory(createItem('hp potion', 'consumible', 10))
+);
 
-newInventory.addInventory(createItem('mana potion', 'consumible', 5));
-newInventory.addInventory(createItem('mana potion', 'consumible', 1));
-newInventory.addInventory(createItem('mana potion', 'consumible', 2));
-newInventory.addInventory(createItem('mana potion', 'consumible', 5));
-newInventory.addInventory(createItem('mana potion', 'consumible', 5));
-newInventory.addInventory(createItem('mana potion', 'consumible', 5));
-newInventory.addInventory(createItem('mana potion', 'consumible', 5));
 
-newInventory.addInventory(createItem('machado', 'weapon'));
+console.log(newInventory.addInventory(createItem('machado', 'weapon')));
 
 console.log(newInventory);
