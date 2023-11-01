@@ -115,6 +115,16 @@ console.log(
 	newInventory.addInventory(createItem('hp potion', 'consumible', 10))
 );
 
+console.log(
+	newInventory.addInventory(createItem('hp potion', 'consumible', 2))
+);
+console.log(
+	newInventory.addInventory(createItem('hp potion', 'consumible', 8))
+);
+console.log(
+	newInventory.addInventory(createItem('hp potion', 'consumible', 10))
+);
+
 
 console.log(newInventory.addInventory(createItem('machado', 'weapon')));
 
